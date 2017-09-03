@@ -1,8 +1,8 @@
-### Classificação com Machine Learning
+# Classificação com Machine Learning
 
 Esse é um repositório com alguns algoritmos de machine learning em um dataset que contem dados meteorologicos de alguns anos do norte da Califórnia. O dataset foi encontrado em : https://data.townofcary.org/explore/dataset/rdu-weather-history/?sort=date
 
-## Configurando
+### Configurando
 
 Baixe o repositório e execute "pip install -r requirements.txt" para instalar as dependências necessárias.
 
