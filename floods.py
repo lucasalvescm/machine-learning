@@ -19,33 +19,53 @@ dict_months={
     'Nov':11,
     'Dec':12,
 }
+#import ipdb;ipdb.set_trace()
 cursor.execute("SELECT * FROM floods;")
 data = list(cursor.fetchall())
-d2 = dict((k, v) for k, v in dict_months.items())
+# d2 = dict((k, v) for k, v in dict_months.items())
+# for d in data:
+
+#     data = str(d[10]).split('-') if d != '#N/DISP' else ''
+
+
+
+#     try:
+#         #import ipdb;ipdb.set_trace()
+#         day = data[0]
+#         month = d2[str(data[1])]
+#         year = '19'+str(data[2]) if (int(data[2]) > 84 and int(data[2]) <= 99) else '20'+str(data[2])
+#         date = str(year)+'-'+str(month)+'-'+str(day)
+        
+#         date = datetime.strptime(date, '%Y-%m-%d')
+
+#         #import ipdb;ipdb.set_trace()
+
+#         cursor.execute("UPDATE floods SET Ended='{}' WHERE Register='{}'".format(str(date),int(d[0])))
+
+#         cursor.fetchall()
+
+#         db.commit()
+
+
+#     except Exception as e:
+
+#         print (str(e))
+#         pass
+dict_country = {}
 for d in data:
-
-    data = str(d[9]).split('-') if d != '#N/DISP' else ''
-
-    try:
-        #import ipdb;ipdb.set_trace()
-        day = data[0]
-        month = d2[str(data[1])]
-        year = '19'+str(data[2]) if (int(data[2]) > 84 and int(data[2]) <= 99) else '20'+str(data[2])
-        date = str(year)+'-'+str(month)+'-'+str(day)
+    if d[3] == 'Brazil':
         import ipdb;ipdb.set_trace()
-        date = datetime.strptime(date, '%Y-%m-%d')
+    try:
+        c = dict_country[str(d[3])]
+        c = c+1
 
-
-
-        cursor.execute("UPDATE floods SET Began='{}' WHERE Register='{}'".format(str(date),int(d[0])))
-
-        cursor.fetchall
-
-
+        c.UPDATE({str(d[3]):c})
     except:
-        break
+        #import ipdb;ipdb.set_trace()
+        dict_country.update({str(d[3]):1})
 
 
 
+print (dict_country)
 
 
