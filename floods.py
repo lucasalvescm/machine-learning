@@ -3,6 +3,7 @@ from datetime import datetime
 import requests
 import json
 from statistics import mean
+import time
 # Open database connection
 db = MySQLdb.connect("localhost","root","root","flood_db" )
 # prepare a cursor object using cursor() method
@@ -23,7 +24,7 @@ dict_months={
     'Dec':12,
 }
 #import ipdb;ipdb.set_trace()
-cursor.execute("SELECT * FROM floods order by Began desc limit 5;")
+cursor.execute("SELECT * FROM floods where temperature is null order by Began desc limit 50 ;")
 data_ = list(cursor.fetchall())
 d2 = dict((k, v) for k, v in dict_months.items())
 
@@ -59,10 +60,10 @@ for dt in data_:
                     print (j['rain'])
                     print ('----------')
 
-                    list_prec.append(float(j['precipm']))
-                    list_temp.append(float(j['tempm']))
-                    list_hum.append(float(j['hum']))
-                    list_pressure.append(float(j['pressurei']))
+                    list_prec.append(float(j['precipm'])) if j['precipm'] != "" else ''
+                    list_temp.append(float(j['tempm'])) if j['tempm'] != "" else ''
+                    list_hum.append(float(j['hum'])) if j['hum'] != "" else ''
+                    list_pressure.append(float(j['pressurei'])) if j['pressurei'] != "" else ''
 
             
             media_hum = mean(list_hum)     
@@ -78,9 +79,14 @@ for dt in data_:
             cursor.fetchall()
 
             db.commit()
+
+            time.sleep(30)
         except Exception as e:
-            print(str(e))
+            if 'string' in str(e):
+                import ipdb;ipdb.set_trace()
             pass
+
+        time.sleep(20)
 
 def update_dates(data):
     pass
