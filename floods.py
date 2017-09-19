@@ -2,6 +2,7 @@ import MySQLdb
 from datetime import datetime
 import requests
 import json
+from statistics import mean
 # Open database connection
 db = MySQLdb.connect("localhost","root","root","flood_db" )
 # prepare a cursor object using cursor() method
@@ -22,14 +23,14 @@ dict_months={
     'Dec':12,
 }
 #import ipdb;ipdb.set_trace()
-cursor.execute("SELECT * FROM floods order by Began desc limit 1;")
+cursor.execute("SELECT * FROM floods order by Began desc limit 5;")
 data_ = list(cursor.fetchall())
 d2 = dict((k, v) for k, v in dict_months.items())
 
 
 
 for dt in data_:
-    if dt[3] == 'USA':
+    if dt[31] is None:
         latitude = dt[20]
         longitude = dt[19]
         began = dt[9]
@@ -39,22 +40,47 @@ for dt in data_:
         date_format = began[:10].replace('-','')
         latitude_format = latitude.replace(',','.')
         longitude_format = longitude.replace(',','.')
-        url = 'http://api.wunderground.com/api/556c01eefe7043a5/history_{}/q/{},{}.json'.format(date_format,latitude_format,longitude_format)
-        #print(url)
-        r = requests.get(url)
-        json_content = json.loads(r.text)
-        for j in json_content['history']['observations']:
-            if '1'in j['rain']:
-                print (j['hum'])
-                print (j['tempm'])
-                print (j['precipi'])
-                print (j['rain'])
-                print ('----------')
+        try:
+            url = 'http://api.wunderground.com/api/556c01eefe7043a5/history_{}/q/{},{}.json'.format(date_format,latitude_format,longitude_format)
+            #print(url)
+            r = requests.get(url)
+            json_content = json.loads(r.text)
 
-        #     print(json_content['history']['observations'])
-        # else:
-        #     pass
+            list_hum = []
+            list_temp = []
+            list_prec = []
+            list_pressure = []
 
+            for j in json_content['history']['observations']:
+                if '1'in j['rain']:
+                    print (j['hum'])
+                    print (j['tempm'])
+                    print (j['precipi'])
+                    print (j['rain'])
+                    print ('----------')
+
+                    list_prec.append(float(j['precipm']))
+                    list_temp.append(float(j['tempm']))
+                    list_hum.append(float(j['hum']))
+                    list_pressure.append(float(j['pressurei']))
+
+            
+            media_hum = mean(list_hum)     
+            media_temp = mean(list_temp)
+            media_prec = mean(list_prec)
+            media_ppressure = mean(list_pressure)         
+
+            
+            #     print(json_content['history']['observations'])
+            # else:
+            #     pass
+            cursor.execute("UPDATE floods SET temperature='{}', humidity='{}', precipitation='{}', pressure='{}' WHERE Register='{}'".format(media_temp,media_hum,media_prec,media_ppressure,str(dt[0])))
+            cursor.fetchall()
+
+            db.commit()
+        except Exception as e:
+            print(str(e))
+            pass
 
 def update_dates(data):
     pass
