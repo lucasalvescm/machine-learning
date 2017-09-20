@@ -24,41 +24,78 @@ dict_months={
     'Nov':11,
     'Dec':12,
 }
-#import ipdb;ipdb.set_trace()
-cursor.execute("select * from floods where Centroid_X != '#N/DISP' and Centroid_Y != '#N/DISP' and Country like 'USA';")
-data_ = list(cursor.fetchall())
-d2 = dict((k, v) for k, v in dict_months.items())
 
 
-
-for dt in data_:
-    #if dt[31] is None:
-    latitude = dt[20]
-    longitude = dt[19]
-    began = dt[9]
-    ended = dt[10]
-    #print("Latitude:"+latitude+" Longitude:"+longitude+" Inicio:"+began+" Fim:"+ended)
-    #import ipdb;ipdb.set_trace()
-
-    began = datetime.strptime(began, "%Y-%m-%d %H:%M:%S")
-    ended = datetime.strptime(ended, "%Y-%m-%d %H:%M:%S")
-
-    previous_date = began - timedelta(days=10)
-    print(began)
-    print(previous_date)
-    mydates = pd.date_range(previous_date, began).tolist()
-    for date in mydates:
+def update_climate_api():
+    cursor.execute("select * from data_climate where json_data is Null;")
+    data_ = list(cursor.fetchall())
+    
+    for dt in data_:
+        id_dt = dt[0]
+        latitude = dt[4]
+        longitude = dt[5]
+        data = dt[1].replace('-','')
+        print(id_dt)
         try:
-            #import ipdb;ipdb.set_trace()
-            date_string = str(date.strftime('%Y-%m-%d'))
-            query = "INSERT INTO data_climate (data_event, id_event,flood) VALUES ('{}',{},0);".format(date_string,dt[0])
+            url = 'http://api.wunderground.com/api/556c01eefe7043a5/history_{}/q/{},{}.json'.format(data,latitude,longitude)
+            #print(url)
+            r = requests.get(url)
+            json_content = json.loads(r.text)
+            
+            query = 'UPDATE data_climate SET json_data="{}" WHERE id="{}"'.format(str(json_content),id_dt)
             print(query)
             cursor.execute(query)
             cursor.fetchall()
-
             db.commit()
         except Exception as e:
-            import ipdb;ipdb.set_trace()
+            print(str(e)) 
+
+        time.sleep(30)   
+
+
+ 
+update_climate_api()
+
+
+def insert_dates():
+    '''
+    Select na tabela de floods pegando as datas de cada evento e atualizando na tabela de data_climate.
+    '''
+    cursor.execute("select * from floods where Centroid_X != '#N/DISP' and Centroid_Y != '#N/DISP' and Country like 'USA';")
+    data_ = list(cursor.fetchall())
+    d2 = dict((k, v) for k, v in dict_months.items())
+
+
+
+    for dt in data_:
+        #if dt[31] is None:
+        latitude = dt[20].replace(',','.')
+        longitude = dt[19].replace(',','.')
+        began = dt[9]
+        ended = dt[10]
+        #print("Latitude:"+latitude+" Longitude:"+longitude+" Inicio:"+began+" Fim:"+ended)
+        #import ipdb;ipdb.set_trace()
+
+        began = datetime.strptime(began, "%Y-%m-%d %H:%M:%S")
+        ended = datetime.strptime(ended, "%Y-%m-%d %H:%M:%S")
+
+        previous_date = began - timedelta(days=20)
+
+        list_dates = pd.date_range(previous_date, began).tolist() #Usado para inserir datas anteriores ao evento
+        #list_dates = pd.date_range(began, ended).tolist() #Usado para inserir datas durante o evento.
+        for date in list_dates:
+            try:
+                #import ipdb;ipdb.set_trace()
+                date_string = str(date.strftime('%Y-%m-%d'))
+                query = "INSERT INTO data_climate (data_event, id_event,flood,latitude,longitude) VALUES ('{}',{},0,{},{});".format(date_string,dt[0],latitude,longitude)
+                print(query)
+                cursor.execute(query)
+                cursor.fetchall()
+
+                db.commit()
+            except Exception as e:
+                print(str(e))
+            #import ipdb;ipdb.set_trace()
 
 
         # date_format = began[:10].replace('-','')
@@ -135,3 +172,4 @@ def update_dates(data):
 
     #     print (str(e))
     #     pass
+
