@@ -54,8 +54,30 @@ def update_climate_api():
 
 
  
+def read_csv():
+    data = pd.read_csv('data_bases/data_set_pre_json.csv')
+    
+    for id_date,data,id_event,json_data,flood,latitude,longitude in zip(data['id'],data['data_event'], data['id_event'], data['json_data'],data['flood'],data['latitude'],data['longitude']):
+        print(id_date,data,id_event,str(json_data),flood,latitude,longitude)
+        
+        json_data = str(json_data)
+        if json_data == 'nan':
+            json_data = 'NULL'
+        else:
+            pass
+        #import ipdb;ipdb.set_trace()
+        
+        query = "INSERT INTO data_climate (id,data_event, id_event,json_data,flood,latitude,longitude) VALUES ({},'{}','{}',{},{},{},{});".format(id_date,data,id_event,json_data,flood,latitude,longitude)
+        print(query)
+        cursor.execute(query)
+        cursor.fetchall()
+        db.commit()
+         
 
 
+
+
+read_csv()
 
 def insert_dates():
     '''
@@ -175,5 +197,3 @@ def update_dates(data):
 
     #     print (str(e))
     #     pass
-
-insert_dates()
