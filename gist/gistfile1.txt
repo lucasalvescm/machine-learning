@@ -2,11 +2,11 @@ CREATE TABLE data_climate (
     id int NOT NULL AUTO_INCREMENT,
     data_event varchar(25) NOT NULL,
     id_event varchar(20),
-    json_data varchar(500),
+    json_data text,
+    flood int,
+    latitude float,
+    longitude float,
     PRIMARY KEY (id)
 );
-
-
-ALTER TABLE data_climate ADD flood int;
 
 

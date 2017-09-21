@@ -54,7 +54,7 @@ def update_climate_api():
 
 
  
-update_climate_api()
+
 
 
 def insert_dates():
@@ -79,10 +79,13 @@ def insert_dates():
         began = datetime.strptime(began, "%Y-%m-%d %H:%M:%S")
         ended = datetime.strptime(ended, "%Y-%m-%d %H:%M:%S")
 
-        previous_date = began - timedelta(days=20)
+        previous_date = began - timedelta(days=60)
+        next_date = ended + timedelta(days=60)
 
-        list_dates = pd.date_range(previous_date, began).tolist() #Usado para inserir datas anteriores ao evento
+        #list_dates = pd.date_range(previous_date, began).tolist() #Usado para inserir datas anteriores ao evento
+        list_dates = pd.date_range(ended, next_date).tolist() #Usado para inserir datas após ao evento
         #list_dates = pd.date_range(began, ended).tolist() #Usado para inserir datas durante o evento.
+
         for date in list_dates:
             try:
                 #import ipdb;ipdb.set_trace()
@@ -95,7 +98,7 @@ def insert_dates():
                 db.commit()
             except Exception as e:
                 print(str(e))
-            #import ipdb;ipdb.set_trace()
+        #import ipdb;ipdb.set_trace()
 
 
         # date_format = began[:10].replace('-','')
@@ -173,3 +176,4 @@ def update_dates(data):
     #     print (str(e))
     #     pass
 
+insert_dates()
