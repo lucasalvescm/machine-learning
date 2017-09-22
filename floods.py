@@ -29,13 +29,14 @@ dict_months={
 def update_climate_api():
     cursor.execute("select * from data_climate where json_data is Null;")
     data_ = list(cursor.fetchall())
-    
+    count = 0
     for dt in data_:
+        #import ipdb;ipdb.set_trace()
         id_dt = dt[0]
         latitude = dt[4]
         longitude = dt[5]
         data = dt[1].replace('-','')
-        print(id_dt)
+        print('REQUISICOES: '+str(count))
         try:
             url = 'http://api.wunderground.com/api/556c01eefe7043a5/history_{}/q/{},{}.json'.format(data,latitude,longitude)
             #print(url)
@@ -49,13 +50,13 @@ def update_climate_api():
             db.commit()
         except Exception as e:
             print(str(e)) 
+        count+=1    
+        time.sleep(10)   
 
-        time.sleep(30)   
-
-
+update_climate_api()
  
 def read_csv():
-    data = pd.read_csv('data_bases/data_set_pre_json.csv')
+    data = pd.read_csv('datas_json_preenchido.csv')
     
     for id_date,data,id_event,json_data,flood,latitude,longitude in zip(data['id'],data['data_event'], data['id_event'], data['json_data'],data['flood'],data['latitude'],data['longitude']):
         print(id_date,data,id_event,str(json_data),flood,latitude,longitude)
@@ -67,7 +68,7 @@ def read_csv():
             pass
         #import ipdb;ipdb.set_trace()
         
-        query = "INSERT INTO data_climate (id,data_event, id_event,json_data,flood,latitude,longitude) VALUES ({},'{}','{}',{},{},{},{});".format(id_date,data,id_event,json_data,flood,latitude,longitude)
+        query = 'UPDATE data_climate set json_data = "{}" where data_event="{}" and id_event={};'.format(json_data,data,id_event)
         print(query)
         cursor.execute(query)
         cursor.fetchall()
@@ -77,7 +78,6 @@ def read_csv():
 
 
 
-read_csv()
 
 def insert_dates():
     '''
