@@ -24,40 +24,88 @@ dict_months={
     'Nov':11,
     'Dec':12,
 }
-key_1 = 'd3217c6d0e7a9cca'
-key_2 = '556c01eefe7043a5'
-key_3 = 'cb59574428ef5910'
-key_4 = 'c632aab353bc8170'
 
-# def update_climate_api():
-#     cursor.execute("select * from data_climate where json_data is Null;")
-#     data_ = list(cursor.fetchall())
-#     count = 1
-#     for dt in data_:
-#         if count<=530:
-#             #import ipdb;ipdb.set_trace()
-#             id_dt = dt[0]
-#             latitude = dt[4]
-#             longitude = dt[5]
-#             data = dt[1].replace('-','')
-#             print('REQUISICOES: '+str(count))
-#             try:
-#                 url = 'http://api.wunderground.com/api/{}/history_{}/q/{},{}.json'.format(key_4,data,latitude,longitude)
-#                 print(url)
-#                 r = requests.get(url)
-#                 json_content = json.loads(r.text)
+'''CHAVES lucasalves.s@outlook.com'''
+key_1 = 'd3217c6d0e7a9cca'
+key_master = '556c01eefe7043a5' #LIMIT 5000
+
+'''CHAVES lucasalves.souza01@gmail.com'''
+key_2 = 'c632aab353bc8170'
+key_3 = '910ec1a0d8b123aa'
+key_4 = 'a80d26dc586d7cdd'
+key_5 = 'dfbbcd5c559ad26a'
+
+def update_climate_api_key_master():
+    cursor.execute("select * from data_climate where json_data is Null;")
+    data_ = list(cursor.fetchall())
+    
+    count = 1
+    for dt in data_:
+        if count<=5010:
+            #import ipdb;ipdb.set_trace()
+            id_dt = dt[0]
+            latitude = dt[5]
+            longitude = dt[6]
+            data = dt[1].replace('-','')
+            print('REQUISICOES: '+str(count))
+            try:
+                url = 'http://api.wunderground.com/api/{}/history_{}/q/{},{}.json'.format(key_master,data,latitude,longitude)
+                print(url)
                 
-#                 query = 'UPDATE data_climate SET json_data="{}" WHERE id="{}"'.format(str(json_content),id_dt)
-#                 #print(query)
-#                 cursor.execute(query)
-#                 cursor.fetchall()
-#                 db.commit()
-#             except Exception as e:
-#                 print(str(e)) 
-#             count+=1    
-#             time.sleep(15)   
-#         else:
-#             break
+                r = requests.get(url)
+                json_content = json.loads(r.text)
+                
+                query = 'UPDATE data_climate SET json_data="{}" WHERE id="{}"'.format(str(json_content),id_dt)
+                #print(query)
+                cursor.execute(query)
+                cursor.fetchall()
+                db.commit()
+            except Exception as e:
+                print(str(e)) 
+            count+=1    
+            time.sleep(1)   
+        else:
+            break
+def update_climate_api_key_slaves(list_keys):
+    for key in list_keys:
+        print('############################')
+        # Open database connection
+        db = MySQLdb.connect("localhost","root","root","flood_db" )
+        # prepare a cursor object using cursor() method
+        cursor = db.cursor()
+        # execute SQL query using execute() method.
+        cursor.execute("select * from data_climate where json_data is Null;")
+        data_ = list(cursor.fetchall())
+        count = 1
+        for dt in data_:
+            
+            if count<=510:
+                #import ipdb;ipdb.set_trace()
+                id_dt = dt[0]
+                latitude = dt[5]
+                longitude = dt[6]
+                data = dt[1].replace('-','')
+                print('REQUISICOES: '+str(count))
+                try:
+                    url = 'http://api.wunderground.com/api/{}/history_{}/q/{},{}.json'.format(key,data,latitude,longitude)
+                    print(url)
+                    r = requests.get(url)
+                    json_content = json.loads(r.text)
+                    
+                    query = 'UPDATE data_climate SET json_data="{}" WHERE id="{}"'.format(str(json_content),id_dt)
+                    #print(query)
+                    cursor.execute(query)
+                    cursor.fetchall()
+                    db.commit()
+                except Exception as e:
+                    print(str(e)) 
+                count+=1    
+                time.sleep(10)   
+            else:
+                break
+
+lista = [key_3,key_4,key_5]
+update_climate_api_key_slaves(lista)  
 
 def analisando_dados():
     cursor.execute("select * from data_climate where json_data is not Null")
@@ -84,8 +132,6 @@ def analisando_dados():
 
     print(count)
 
-analisando_dados()
-# update_climate_api()
  
 def read_csv():
     data = pd.read_csv('datas_json_preenchido.csv')
