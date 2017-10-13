@@ -175,7 +175,17 @@ inicio = time.time()
 #import ipdb;ipdb.set_trace()
 list_x = [0.3,2.7,4.5,5.9,7.8]
 list_y = [1.8,1.9,3.1,3.9,3.3]
-Calculos.criando_modelo(list_x,list_y)
+# list_x = [1.2,2.5,3.0,4.1,6.2,7.1,8.8,9.5]
+# list_y = [6.8,6.1,9.9,9.7,12.1,17.9,18.0,21.5]
+b0,b1,sum_y_square, sum_y = AjusteCurva.modelo_mmq(list_x,list_y)
+
+desvio = AjusteCurva.desvio(b0,b1,list_x,list_y)
+
+coeficiente = AjusteCurva.coeficiente_determinacao(desvio,sum_y_square,sum_y,len(list_x))
+
+variancia = AjusteCurva.variancia_residual(desvio,len(list_x))
+
+print(variancia)
 
 
 #result,nome_algoritmo = treinamento()

@@ -1,15 +1,37 @@
 #!/usr/bin/env python
-#-*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
+""" 
+    Implementação de cálculos de ajuste de curva.
+
+    Esse módulo implementa cálculos necessários para ajuste curva. São eles:
+    Método dos Mínimos Quadrados, Desvio, Coeficiente de Determinação e Variância Residual 
+     
+     
+"""
  
-# Autor: Thiago Monteiro
-# Data: 10/10/2012
-# Local: Goiânia/Goiás/Brasil
+__author__ = "Lucas Alves de Souza"
+__copyright__ = "Copyright 2017, by Alves"
+__credits__ = "Todos desenvolvedores de software livre"
+__license__ = "GNU General Public License"
+__version__ = "1.0.0"
+__maintainer__ = "Lucas Alves"
+__email__ = "lucasalves.s@outlook.com"
+
  
 import math, os, sys
 
-class Calculos:
+class AjusteCurva:
 
-    def criando_modelo(list_x,list_y):
+    def modelo_mmq(list_x,list_y):
+        '''
+        Criar um modelo a partir do Método dos Mínimos Quadrados.
+        entrada:
+         - lista de elementos x.
+         - lista de elementos y.
+        saída: 
+         - b0 e b1 que são os elementos do modelo Y = b0 + b1x
+
+        '''
         list_x_square = []
         list_y_square = []
         list_x_y = []
@@ -41,6 +63,51 @@ class Calculos:
         B0 = (sum_list_y - (B1 * sum_list_x)) / len(list_x)
 
         print('y=',str(B0),'+',str(B1),'x')
+
+        return B0,B1, sum_list_y_square, sum_list_y
+
+    def desvio(b0,b1,list_x,list_y):
+        '''
+        Calcular desvio a partir do modelo gerado pelo MMQ.
+        entrada:
+         - b0 e b1 que são os elementos do modelo Y = b0 + b1x
+         - lista de elementos x.
+         - lista de elementos y.
+        saída: 
+         - valor de desvio.
+
+        '''
+        cont = 0
+        list_resultados = []
+        for x in list_x:
+            resultado = 0
+            resultado = (list_y[cont] - (b0 + (b1*list_x[cont]))) ** 2
+            list_resultados.append(resultado)
+            cont+=1
+
+        desvio = sum(list_resultados)    
+
+        return desvio
+        
+    def coeficiente_determinacao(desvio, sum_y_square, sum_y, len_elements):
+        '''
+        Calcular desvio a partir do modelo gerado pelo MMQ.
+        entrada:
+         - b0 e b1 que são os elementos do modelo Y = b0 + b1x
+         - lista de elementos x.
+         - lista de elementos y.
+        saída: 
+         - valor de desvio.
+
+        '''
+        coef = 1 - (desvio / (sum_y_square - ((sum_y ** 2)/len_elements)))
+        return coef
+
+    def variancia_residual(desvio,len_elements):
+        variancia = desvio / (len_elements - 2)
+
+        return variancia
     
+
      
     
