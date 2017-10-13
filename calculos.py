@@ -91,19 +91,29 @@ class AjusteCurva:
         
     def coeficiente_determinacao(desvio, sum_y_square, sum_y, len_elements):
         '''
-        Calcular desvio a partir do modelo gerado pelo MMQ.
+        Calcular coeficiente de determinação.
         entrada:
-         - b0 e b1 que são os elementos do modelo Y = b0 + b1x
-         - lista de elementos x.
-         - lista de elementos y.
+         - desvio
+         - lista de elementos y ²
+         - lista de elementos y
+         - quantidade de pontos
         saída: 
-         - valor de desvio.
+         - coeficiente de determinação
 
         '''
         coef = 1 - (desvio / (sum_y_square - ((sum_y ** 2)/len_elements)))
         return coef
 
     def variancia_residual(desvio,len_elements):
+        '''
+        Calcular variância residual.
+        entrada:
+         - desvio
+         - quantidade de pontos.
+        saída: 
+         - variância residual
+
+        '''
         variancia = desvio / (len_elements - 2)
 
         return variancia
