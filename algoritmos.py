@@ -8,10 +8,11 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 
+
 from sklearn.linear_model import LogisticRegression
 import time
 import json
-from calculos import Calculos
+from calculos import AjusteCurva
 nome_algoritmo = ''
 inicio = time.time()
 # Function to get data
@@ -27,7 +28,7 @@ def get_data(file_name):
     variables_test = []
     boolean_test = []
     #Dados da primeira linha até 1373
-    for flood_data,flood in zip(data['json_data'],data['flood']):
+    for flood_data in data['json_data']:
         #import ipdb;ipdb.set_trace()
         x = flood_data.replace("'",'"')
         try:
@@ -36,13 +37,13 @@ def get_data(file_name):
                 json_dailly = json_after['history']['dailysummary']
                 if json_dailly and json_dailly[0]['mintempm'] != '-55573':
                     variables_fit.append(flood_data)
-                    boolean_fit.append(flood)
+                    
         except Exception as e:
             print(str(e))
 
 
 
-    return variables_fit,boolean_fit
+    return variables_fit
 
 
 def treinamento():
@@ -161,8 +162,63 @@ def treinamento():
 
     return result,nome_algoritmo
 
+def calculando_ajuste_curva(list_var,content):
+    # # Open database connection
+    # db = MySQLdb.connect("localhost","root","root","flood_db" )
+    # # prepare a cursor object using cursor() method
+    # cursor = db.cursor()
+    dict_result = {}
+    list_x = []
+    list_y = []
+    # cursor.execute("select * from data_climate where json_data is not Null order by id_event;")
+    # data_ = list(cursor.fetchall())
+    # count = 0
+    # for dt in data_[:44582]:
+    #     try:
+    #         json_data = dt[3]
+    #         flood = dt[4]
+    for json_data in content:
+        try:        
+            json_data = json_data.replace("'",'"')
+            json_content = json.loads(json_data)
 
+            json_dailly = json_content['history']['dailysummary']
+           
+            if json_dailly != []:
+                try:
+                    for key in json_dailly[0].keys():
+                        if key in list_var:
+                            #print(key)
+                            try:
+                                param = float(json_dailly[0][key]) if json_dailly[0][key] != '-999' else 0
+                            except:
+                                param = 0
+                            if param == '':
+                                param = 0
+                            
+                            if key == list_var[0]:
+                                list_x.append(param)
+                            if key == list_var[1]:
+                                list_y.append(param)
+                    
+                except Exception as e:
+                    print(e)
+                    import ipdb;ipdb.set_trace()
+                
+        except:
+            pass
+    print(list_x)        
+    b0,b1,sum_y_square, sum_y = AjusteCurva.modelo_mmq(list_x,list_y)
 
+    desvio = AjusteCurva.desvio(b0,b1,list_x,list_y)
+
+    coeficiente = AjusteCurva.coeficiente_determinacao(desvio,sum_y_square,sum_y,len(list_x))
+
+    variancia = AjusteCurva.variancia_residual(desvio,len(list_x))
+    lista_string = [str(list_var),desvio,coeficiente,variancia]
+    
+
+    return lista_string
 
 inicio = time.time()
 #X_treinamento, Y_treinamento = get_data('data_bases/dataset_completo_treinamento.csv')
@@ -170,25 +226,46 @@ inicio = time.time()
 #X_teste, Y_teste = get_data('data_bases/dataset_completo_teste.csv')
 #import ipdb;ipdb.set_trace()
 
-#print(y_test)
-#result = svm_model_main(X_treinamento,Y_treinamento,X_teste,Y_teste)
-#import ipdb;ipdb.set_trace()
-list_x = [0.3,2.7,4.5,5.9,7.8]
-list_y = [1.8,1.9,3.1,3.9,3.3]
-# list_x = [1.2,2.5,3.0,4.1,6.2,7.1,8.8,9.5]
-# list_y = [6.8,6.1,9.9,9.7,12.1,17.9,18.0,21.5]
-b0,b1,sum_y_square, sum_y = AjusteCurva.modelo_mmq(list_x,list_y)
 
-desvio = AjusteCurva.desvio(b0,b1,list_x,list_y)
-
-coeficiente = AjusteCurva.coeficiente_determinacao(desvio,sum_y_square,sum_y,len(list_x))
-
-variancia = AjusteCurva.variancia_residual(desvio,len(list_x))
-
-print(variancia)
+list_param = ['mintempm','minhumidity','minpressurem','maxwspdi','precipi']
 
 
-#result,nome_algoritmo = treinamento()
+from itertools import product 
+
+list_combinado = list(product(list_param,repeat=2))
+
+import os
+import csv
+
+for _,_,arquivo in os.walk('/home/lucas-desenv/workspace-machine/machine-learning/data_bases/America/'):
+    for name_arquivo in arquivo:
+        #import ipdb;ipdb.set_trace()
+        try:
+            content = get_data('data_bases/America/'+str(name_arquivo))
+        except Exception as e:
+            print(str(e))
+            print(name_arquivo)        
+        lista_final = []
+
+        with open('ajuste_curva/'+name_arquivo, 'w') as csvfile:
+            fieldnames = ['variaveis', 'desvio','coeficiente','variancia']
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()    
+            for dupla in list_combinado:
+                print(dupla)
+                resultado = calculando_ajuste_curva(dupla,content)
+                writer.writerow({'variaveis': resultado[0],'desvio': resultado[1],'coeficiente': resultado[2],'variancia': resultado[3]})
+            
+
+fim = time.time()
+
+print ("Tempo de execução: ", fim-inicio, "segundos")
+
+# result = svm_model_main(X_treinamento,Y_treinamento,X_teste,Y_teste)
+# import ipdb;ipdb.set_trace()
+
+
+# result,nome_algoritmo = treinamento()
 
 # list_default = []
 # list_grafico = []
@@ -208,9 +285,31 @@ print(variancia)
 #         list_final.append(numeros)
 
 
+#fim = time.time()
 
-# fim = time.time()
 # print (nome_algoritmo)
 # print ("Quantidade de itens iniciais",len(result))
 # print ("Quantidade de itens que coincidiram",len(list_final))
 # print ("Tempo de execução: ", fim-inicio, "segundos")
+
+
+
+
+########## TESTE DA CLASSE CALCULOS ###################
+
+
+
+
+# list_x = [0.3,2.7,4.5,5.9,7.8]
+# list_y = [1.8,1.9,3.1,3.9,3.3]
+# # list_x = [1.2,2.5,3.0,4.1,6.2,7.1,8.8,9.5]
+# # list_y = [6.8,6.1,9.9,9.7,12.1,17.9,18.0,21.5]
+# b0,b1,sum_y_square, sum_y = AjusteCurva.modelo_mmq(list_x,list_y)
+
+# desvio = AjusteCurva.desvio(b0,b1,list_x,list_y)
+
+# coeficiente = AjusteCurva.coeficiente_determinacao(desvio,sum_y_square,sum_y,len(list_x))
+
+# variancia = AjusteCurva.variancia_residual(desvio,len(list_x))
+
+# print(variancia)

@@ -57,10 +57,15 @@ class AjusteCurva:
         sum_list_x_y = sum(list_x_y)
         sum_list_x = sum(list_x)
         sum_list_y = sum(list_y)
+        try:
 
-        B1 = ((sum_list_x*sum_list_y) - (len(list_x)*sum_list_x_y)) / ((sum_list_x ** 2) - (len(list_x)*sum_list_x_square))
-
-        B0 = (sum_list_y - (B1 * sum_list_x)) / len(list_x)
+            B1 = ((sum_list_x*sum_list_y) - (len(list_x)*sum_list_x_y)) / ((sum_list_x ** 2) - (len(list_x)*sum_list_x_square))
+        except ZeroDivisionError:
+            B1 = 0    
+        try:
+            B0 = (sum_list_y - (B1 * sum_list_x)) / len(list_x)
+        except ZeroDivisionError:
+            B0 = 0        
 
         print('y=',str(B0),'+',str(B1),'x')
 
@@ -101,7 +106,10 @@ class AjusteCurva:
          - coeficiente de determinação
 
         '''
-        coef = 1 - (desvio / (sum_y_square - ((sum_y ** 2)/len_elements)))
+        try:
+            coef = 1 - (desvio / (sum_y_square - ((sum_y ** 2)/len_elements)))
+        except ZeroDivisionError:
+            coef = 0
         return coef
 
     def variancia_residual(desvio,len_elements):
@@ -114,7 +122,10 @@ class AjusteCurva:
          - variância residual
 
         '''
-        variancia = desvio / (len_elements - 2)
+        try:
+            variancia = desvio / (len_elements - 2)
+        except ZeroDivisionError:
+            variancia = 0
 
         return variancia
     
