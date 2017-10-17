@@ -47,10 +47,10 @@ variancia = AjusteCurva.variancia_residual(desvio,len(x))
 
 print(desvio, coeficiente, variancia)
 
-# #SÉPALA
-# listx = [3.8,3.4,3.2,4,3.2]
-# listy=[5.1,5,4.4,5.8,4.7]
-# listp=[3.49,3.41,2.9,4.07,3.16] #previsto
+#SÉPALA
+listx = [3.8,3.4,3.2,4,3.2]
+listy=[5.1,5,4.4,5.8,4.7]
+listp=[3.49,3.41,2.9,4.07,3.16] #previsto
 
 
 #PÉTALA
@@ -59,9 +59,18 @@ listy=[1.9,1.5,1.3,1.2,1.3]
 listp=[0.32,0.25,0.21,0.20,0.21] #previsto
 
 
-plt.plot(listx,listy,'ro')
-plt.plot(listp,listy,'bo')
+plt.plot(listx,listy,'bo')
+plt.plot(listp,listy,'ro')
 
+
+lista_teste = [0,1,1.5,2,2.5,3]
+lista_teste_y=[]
+
+for item in lista_teste:
+    y = -0.56943267304 + (0.201245094059*item)
+    lista_teste_y.append(y)
+print(lista_teste_y)
+plt.plot(lista_teste_y,lista_teste,'k')
 
 plt.show()
 
