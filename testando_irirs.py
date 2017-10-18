@@ -59,19 +59,20 @@ listy=[1.9,1.5,1.3,1.2,1.3]
 listp=[0.32,0.25,0.21,0.20,0.21] #previsto
 
 
-plt.plot(listy,listx,'bo')
-plt.plot(listy,listp,'ro')
+plt.plot(listy,listx,'bo',label='Reais')
+plt.plot(listy,listp,'ro-',label="Reg. Linear")
 
-
-lista_teste = [0,1,1.5,2,2.5,3]
-lista_teste_y=[]
+lista_teste_y = []
 
 for item in listy:
-    y = -0.0482203275139 + (0.201245094059*item)
+    y = b0 + (b1*item)
     
     lista_teste_y.append(y)
 print(lista_teste_y)
-plt.plot(listy,lista_teste_y,'k')
+plt.plot(listy,lista_teste_y,'go-',label="MMQ")
 
+plt.ylabel('Pétala Width')
+plt.xlabel('Pétala Length')
+plt.legend(bbox_to_anchor=(1, 0.18), loc=1, borderaxespad=0.)
 plt.show()
 

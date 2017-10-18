@@ -207,7 +207,12 @@ def calculando_ajuste_curva(list_var,content):
                 
         except:
             pass
-    print(list_x)        
+    plt.plot(list_x, list_y,'ro')
+    #plt.axis([0,50,0,100])
+    plt.show()  
+
+
+    import ipdb;ipdb.set_trace()   
     b0,b1,sum_y_square, sum_y = AjusteCurva.modelo_mmq(list_x,list_y)
 
     desvio = AjusteCurva.desvio(b0,b1,list_x,list_y)
@@ -247,7 +252,7 @@ for _,_,arquivo in os.walk('/home/lucas-desenv/workspace-machine/machine-learnin
             print(name_arquivo)        
         lista_final = []
 
-        with open('ajuste_curva/'+name_arquivo, 'w') as csvfile:
+        with open('teste.csv', 'w') as csvfile:
             fieldnames = ['variaveis', 'desvio','coeficiente','variancia']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()    
