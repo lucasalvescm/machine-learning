@@ -14,8 +14,7 @@ from sklearn.linear_model import LogisticRegression
 import time
 import json
 from calculos import AjusteCurva
-
-
+from matplotlib.pyplot import step, xlim, ylim, show
 
 class MachineLearning:
     def get_data(self,file_name):
@@ -24,6 +23,10 @@ class MachineLearning:
             Utiliza três variaveis(temperatura minima, preciptação e velocidade do vento) e o boolean de chuva.
             '''
             data = pd.read_csv(file_name)
+
+            
+
+            data = data.iloc[np.random.permutation(len(data))]
             climate_data_fit = []
             flood_data_fit = []
             #Dados da primeira linha até 1373
@@ -233,7 +236,7 @@ class MachineLearning:
                             #import ipdb;ipdb.set_trace()
                             #if key in ('maxtempm','mintempm','minhumidity','maxhumidity','maxpressurei','minpressurem','maxwspdi','precipi'):
                             #if key in ('mintempm','minhumidity','minpressurem','maxwspdi','precipi'):
-                            if key in ('minhumidity', 'minpressurem'):
+                            if key in ('minpressurem', 'precipi'):
                                 #print(key)
                                 try:
                                     param = float(json_dailly[0][key])
@@ -254,11 +257,11 @@ class MachineLearning:
             except:
                 pass
 
-        #model = DecisionTreeClassifier()
+        model = DecisionTreeClassifier()
         #model = KNeighborsClassifier()
         #model = svm.SVC()
         #model = GaussianNB()
-        model = LogisticRegression()
+        #model = LogisticRegression()
 
         nome_algoritmo = model.__class__.__name__
 
@@ -299,7 +302,7 @@ class MachineLearning:
                         for key_ in json_dailly[0].keys():
                             #import ipdb;ipdb.set_trace()
                             #if key_ in ('mintempm','minhumidity','minpressurem','maxwspdi','precipi'):
-                            if key_ in ('minhumidity', 'minpressurem'):
+                            if key_ in ('minpressurem', 'precipi'):
                                 try:
                                     param = float(json_dailly[0][key_])
                                 except:
@@ -311,15 +314,18 @@ class MachineLearning:
                         
                     except Exception as e:
                         print(e)
-                        import ipdb;ipdb.set_trace()
+                        #import ipdb;ipdb.set_trace()
+                print(list_temp)
                 if list_temp:
                     #import ipdb;ipdb.set_trace()
                     predicted = model.predict(np.array([list_temp]))
                     if predicted == flood[cont]:
                         acertos +=1
                     else:
+                        #import ipdb;ipdb.set_trace()
                         erros +=1
-                    result.append([cont_itens,flood[num_test],predicted[0]]) # .append(nº da linha .csv, boolean real, boolean previsto)
+
+                    result.append([cont_itens,flood[cont],predicted[0]]) # .append(nº da linha .csv, boolean real, boolean previsto)
                 #import ipdb;ipdb.set_trace()
                 num+=1
                 cont+=1
@@ -332,7 +338,8 @@ class MachineLearning:
   
 
     def calcular_ajustes_curva_csv(self):
-        for _,_,arquivo in os.walk('/home/lucas-desenv/workspace-machine/machine-learning/data_bases/America/'):
+        #for _,_,arquivo in os.walk('/home/lucas-desenv/workspace-machine/machine-learning/data_bases/America/'):
+        for _,_,arquivo in os.walk('/home/lucas/workspace-ml/machine-learning/data_bases/America/'):
             list_param = ['mintempm','minhumidity','minpressurem','maxwspdi','precipi']
             list_combinado = list(product(list_param,repeat=2))
             for name_arquivo in arquivo:
@@ -345,7 +352,7 @@ class MachineLearning:
                     print(name_arquivo) 
                 #import ipdb;ipdb.set_trace()      
                 lista_final = []
-                nome_arquivo_resultado = str('ajuste_curva/'+name_arquivo+'_ajuste_curva.csv')
+                nome_arquivo_resultado = str('ajuste_curva/'+name_arquivo.replace(".csv","")+'_ajuste_curva.csv')
                 with open(nome_arquivo_resultado, 'w') as csvfile:
                     fieldnames = ['variaveis', 'desvio','coeficiente','variancia']
                     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -356,16 +363,53 @@ class MachineLearning:
                         writer.writerow({'variaveis': resultado[0],'desvio': resultado[1],'coeficiente': resultado[2],'variancia': resultado[3]})
   
 mac_lg = MachineLearning()
-lista_parametros,flood = mac_lg.get_data('data_bases/America/Chicago.csv')         
+# mac_lg.calcular_ajustes_curva_csv()
+lista_parametros,flood = mac_lg.get_data('data_bases/America/Phoenix.csv')         
 resultado, nome_algoritmo,acertos,erros = mac_lg.treinamento_csv(lista_parametros,flood)           
 print('===============================')
 #import ipdb;ipdb.set_trace()
+lista_previsao = []
+lista_real = []
 for res in resultado:
-    print(res)
+    #import ipdb;ipdb.set_trace()
+    tamanho_lista = len(lista_previsao)
+    #print(tamanho_lista)
+    if tamanho_lista>0:
+        if (res[2] != lista_previsao[tamanho_lista]):
+            lista_previsao.append(int(res[2]))
+            lista_real.append(int(res[1])) 
+        else:
+            pass
+    else:
+        lista_previsao.append(int(res[2]))
+        lista_real.append(int(res[1]))
+
+
+x = np.arange(0, len(lista_real))
+
+y = np.array(lista_real)
+y2 = np.array(lista_previsao)
+
+
+xlim(0, len(lista_real))
+#ylim(-0.5, 1.5)
+step(x, y)
+
+show()
+
+step(x, y2)
+show()
+
+
+# plt.ylabel('Pétala Width')
+# plt.xlabel('Pétala Length')
+# plt.legend(bbox_to_anchor=(1, 0.18), loc=1, borderaxespad=0.)
+
+
 
 print("ACERTOS: "+str(acertos))
 print("ERROS: "+str(erros))
-#mac_lg.calcular_ajustes_curva_csv()
+
 
 
 
