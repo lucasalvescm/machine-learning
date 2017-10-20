@@ -364,7 +364,7 @@ class MachineLearning:
   
 mac_lg = MachineLearning()
 # mac_lg.calcular_ajustes_curva_csv()
-lista_parametros,flood = mac_lg.get_data('data_bases/America/Phoenix.csv')         
+lista_parametros,flood = mac_lg.get_data('data_bases/America/Chicago.csv')         
 resultado, nome_algoritmo,acertos,erros = mac_lg.treinamento_csv(lista_parametros,flood)           
 print('===============================')
 #import ipdb;ipdb.set_trace()
@@ -372,7 +372,7 @@ lista_previsao = []
 lista_real = []
 for res in resultado:
     #import ipdb;ipdb.set_trace()
-    tamanho_lista = len(lista_previsao)
+    tamanho_lista = len(lista_previsao)-1
     #print(tamanho_lista)
     if tamanho_lista>0:
         if (res[2] != lista_previsao[tamanho_lista]):
