@@ -543,54 +543,70 @@ class MachineLearning:
         
   
 mac_lg = MachineLearning()
-# mac_lg.calcular_ajustes_curva_csv()
-dados,flood = mac_lg.get_data('data_bases/America/Anchorage.csv')         
-# resultado, nome_algoritmo,acertos,erros = mac_lg.treinamento_csv(lista_parametros,flood)
 list_param = ['maxtempm','mintempm','minhumidity','maxhumidity','maxpressurem','minpressurem','maxwspdm','precipm']
-#list_param = ['mintempm','minhumidity','minpressurem','maxwspdi','precipi']
-
-dict_for_name = {
-    'maxtempm': 'TEMPERATURA MAX.',
-    'mintempm': 'TEMPERATURA MIN.',
-    'minhumidity': 'UMIDADE MIN.',
-    'maxhumidity': 'UMIDADE MAX.',
-    'maxpressurem': 'PRESSAO MAX.',
-    'minpressurem': 'PRESSAO MIN.',
-    'maxwspdm': 'VELOC. VENTO',
-    'precipm': 'PRECIPTACAO',
-
-
-
-}
 list_combinado = list(product(list_param,repeat=2))
-for parametros in list_combinado:
-    resultado, nome_algoritmo = mac_lg.treinando_variaveis(parametros,dados,flood)       
-    print('===============================')
-    #import ipdb;ipdb.set_trace()
-    lista_previsao = []
-    lista_real = []
-    grafico_valores_previstos = []
-    grafico_valores_reais = []
-    grafico_valores_base = []
-    for res in resultado:
-        #import ipdb;ipdb.set_trace()
-        # if res[1][0] > 7:
-        #     import ipdb;ipdb.set_trace() 
-        grafico_valores_previstos.append(res[2][0])
-        grafico_valores_reais.append(res[1][0])
-        grafico_valores_base.append(res[0][0])
+list_combinado.insert(0,'cidade')
+with open('teste.csv', 'w') as csvfile:
+    fieldnames = list_combinado
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    writer.writeheader()    
+# mac_lg.calcular_ajustes_curva_csv()
+    for _,_,arquivo in os.walk('/home/lucas/workspace-ml/machine-learning/data_bases/America/'):
+        for name_arquivo in arquivo:
+            dados,flood = mac_lg.get_data('data_bases/America/'+name_arquivo)         
+            # resultado, nome_algoritmo,acertos,erros = mac_lg.treinamento_csv(lista_parametros,flood)
+            
+            #list_param = ['mintempm','minhumidity','minpressurem','maxwspdi','precipi']
 
-        #print(res)
-    coef = r2_score(grafico_valores_reais,grafico_valores_previstos)  
-    print(dict_for_name.get(str(parametros[0])))
-    print(dict_for_name.get(str(parametros[1])))
-    print(coef)
+            dict_for_name = {
+                'maxtempm': 'TEMPERATURA MAX.',
+                'mintempm': 'TEMPERATURA MIN.',
+                'minhumidity': 'UMIDADE MIN.',
+                'maxhumidity': 'UMIDADE MAX.',
+                'maxpressurem': 'PRESSAO MAX.',
+                'minpressurem': 'PRESSAO MIN.',
+                'maxwspdm': 'VELOC. VENTO',
+                'precipm': 'PRECIPTACAO',
 
-    mac_lg.salvando_graficos('anchorage',grafico_valores_base,grafico_valores_reais,grafico_valores_previstos,parametros)
 
-   
-    
-    
+
+            }
+            
+            dict_csv = {}
+            dict_csv.update({'cidade':name_arquivo})
+            for parametros in list_combinado:
+                try:
+                    resultado, nome_algoritmo = mac_lg.treinando_variaveis(parametros,dados,flood)       
+                    print('===============================')
+                    #import ipdb;ipdb.set_trace()
+                    lista_previsao = []
+                    lista_real = []
+                    grafico_valores_previstos = []
+                    grafico_valores_reais = []
+                    grafico_valores_base = []
+                    for res in resultado:
+                        #import ipdb;ipdb.set_trace()
+                        # if res[1][0] > 7:
+                        #     import ipdb;ipdb.set_trace() 
+                        grafico_valores_previstos.append(res[2][0])
+                        grafico_valores_reais.append(res[1][0])
+                        grafico_valores_base.append(res[0][0])
+
+                        #print(res)
+                    coef = r2_score(grafico_valores_reais,grafico_valores_previstos)  
+                    print(dict_for_name.get(str(parametros[0])))
+                    print(dict_for_name.get(str(parametros[1])))
+                    print(coef)
+                    #import ipdb;ipdb.set_trace()
+                    dict_csv.update({parametros:coef})
+            
+                    #mac_lg.salvando_graficos('Puerto_Rico',grafico_valores_base,grafico_valores_reais,grafico_valores_previstos,parametros)
+                except:
+                    pass
+            writer.writerow(dict_csv)        
+               
+            
+            
 
 
 
