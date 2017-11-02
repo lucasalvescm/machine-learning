@@ -406,6 +406,7 @@ class MachineLearning:
                         for key in json_dailly[0].keys():
                             if key in variaveis:
                                 #print(key)
+
                                 try:
                                     param = float(json_dailly[0][key])
                                 except:
@@ -419,6 +420,9 @@ class MachineLearning:
                                 if key == variaveis[1]:
                                     
                                     parametros_2.append(param)
+
+                                if key == 'minhumidity' and param >100:
+                                    print(param)
                         # print(variaveis)
                         # print(parametros_1)
                         # print(parametros_2)
@@ -526,6 +530,7 @@ class MachineLearning:
         return result,nome_algoritmo
 
     def salvando_graficos(self,nome_pasta,grafico_valores_base,grafico_valores_reais,grafico_valores_previstos,parametros):
+            #import ipdb;ipdb.set_trace()
             fig = plt.figure(figsize=(12, 7.195), dpi=100)
             nome_arq = 'graficos/America/'+nome_pasta+'/'+str(parametros)+'.png'
 
@@ -533,11 +538,11 @@ class MachineLearning:
             plt.plot(grafico_valores_base,grafico_valores_previstos,'ro',label='Previstos')
         
             
-            plt.ylabel(dict_for_name.get(str(parametros[0])))
-            plt.xlabel(dict_for_name.get(str(parametros[1])))
+            plt.ylabel(dict_for_name.get(str(parametros[1])))
+            plt.xlabel(dict_for_name.get(str(parametros[0])))
             plt.legend(bbox_to_anchor=(1, 1), loc=2, borderaxespad=0.)
             fig.savefig(nome_arq, dpi=500, format='png')
-            #plt.show()
+            plt.close()
 
   
         
@@ -549,71 +554,79 @@ for comb in list_combinado:
     if comb[0]==comb[1]:
         list_combinado.remove(comb)
 list_combinado.insert(0,'cidade')
-# with open('teste.csv', 'w') as csvfile:
-fieldnames = list_combinado
-# writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-# writer.writeheader()    
-base_url='/home/lucas-desenv/workspace-machine/machine-learning/data_bases/America/'
-base_url_graficos='/home/lucas-desenv/workspace-machine/machine-learning/graficos/America/'
-for _,_,arquivo in os.walk(base_url):
-    for name_arquivo in arquivo:
-        nome_pasta_grafico = name_arquivo.split('.')
-        nome_pasta_grafico = nome_pasta_grafico[0]
-        if os.listdir(base_url_graficos+str(nome_pasta_grafico)) == []:
-            print(name_arquivo)
-            dados,flood = mac_lg.get_data('data_bases/America/'+str(name_arquivo))         
-            # resultado, nome_algoritmo,acertos,erros = mac_lg.treinamento_csv(lista_parametros,flood)
-            
-            #list_param = ['mintempm','minhumidity','minpressurem','maxwspdi','precipi']
+with open('coef_variacao_3.csv', 'w') as csvfile:
+    fieldnames = list_combinado
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    writer.writeheader()    
+    base_url='/home/lucas-desenv/workspace-machine/machine-learning/data_bases/America/'
+    base_url_graficos='/home/lucas-desenv/workspace-machine/machine-learning/graficos/America/'
+    for _,_,arquivo in os.walk(base_url):
+        for name_arquivo in arquivo:
+            nome_pasta_grafico = name_arquivo.split('.')
+            nome_pasta_grafico = nome_pasta_grafico[0]
+            if os.listdir(base_url_graficos+str(nome_pasta_grafico)) == []:
+                print(name_arquivo)
+                dados,flood = mac_lg.get_data('data_bases/America/'+str(name_arquivo))         
+                # resultado, nome_algoritmo,acertos,erros = mac_lg.treinamento_csv(lista_parametros,flood)
+                
+                #list_param = ['mintempm','minhumidity','minpressurem','maxwspdi','precipi']
 
-            dict_for_name = {
-                'maxtempm': 'TEMPERATURA MAX (°C)',
-                'mintempm': 'TEMPERATURA MIN (°C)',
-                'minhumidity': 'UMIDADE MIN (%)',
-                'maxhumidity': 'UMIDADE MAX (%)',
-                'maxpressurem': 'PRESSAO MAX (mm)',
-                'minpressurem': 'PRESSAO MIN (mm)',
-                'maxwspdm': 'VELOC. VENTO (kph)',
-                'precipm': 'PRECIPTACAO (mm)',
+                dict_for_name = {
+                    'maxtempm': 'TEMPERATURA MAX (°C)',
+                    'mintempm': 'TEMPERATURA MIN (°C)',
+                    'minhumidity': 'UMIDADE MIN (%)',
+                    'maxhumidity': 'UMIDADE MAX (%)',
+                    'maxpressurem': 'PRESSAO MAX (mm)',
+                    'minpressurem': 'PRESSAO MIN (mm)',
+                    'maxwspdm': 'VELOC. VENTO (kph)',
+                    'precipm': 'PRECIPTACAO (mm)',
 
-            }
-            
-            dict_csv = {}
-            dict_csv.update({'cidade':name_arquivo})
-            for parametros in list_combinado:
-                try:
-                    resultado, nome_algoritmo = mac_lg.treinando_variaveis(parametros,dados,flood)       
-                    print(parametros)
-                    #import ipdb;ipdb.set_trace()
-                    lista_previsao = []
-                    lista_real = []
-                    grafico_valores_previstos = []
-                    grafico_valores_reais = []
-                    grafico_valores_base = []
-                    for res in resultado:
+                }
+                
+                dict_csv = {}
+                dict_csv.update({'cidade':name_arquivo})
+                for parametros in list_combinado:
+                    try:
+                        resultado, nome_algoritmo = mac_lg.treinando_variaveis(parametros,dados,flood)       
+                        print(parametros)
+                        
+                        lista_previsao = []
+                        lista_real = []
+                        grafico_valores_previstos = []
+                        grafico_valores_reais = []
+                        grafico_valores_base = []
+                        for res in resultado:
+                            #import ipdb;ipdb.set_trace()
+                            # if res[1][0] > 7:
+                            #     import ipdb;ipdb.set_trace() 
+                            grafico_valores_previstos.append(res[2][0][0])
+                            grafico_valores_reais.append(res[1][0])
+                            grafico_valores_base.append(res[0][0])
+                        #import ipdb;ipdb.set_trace()    
+                            #print(res)
+                        #coef = r2_score(grafico_valores_reais,grafico_valores_previstos)  
+                        b0,b1,sum_y_square, sum_y = AjusteCurva.modelo_mmq(grafico_valores_base,grafico_valores_reais)
+                        desvio = AjusteCurva.desvio(b0,b1,grafico_valores_base,grafico_valores_reais)
+
+                        coeficiente = AjusteCurva.coeficiente_determinacao(desvio,sum_y_square,sum_y,len(grafico_valores_base))
+
+                        variancia = AjusteCurva.variancia_residual(desvio,len(grafico_valores_base))
+
+
+
+                        print(dict_for_name.get(str(parametros[0])))
+                        print(dict_for_name.get(str(parametros[1])))
+                        print(coeficiente)
                         #import ipdb;ipdb.set_trace()
-                        # if res[1][0] > 7:
-                        #     import ipdb;ipdb.set_trace() 
-                        grafico_valores_previstos.append(res[2][0])
-                        grafico_valores_reais.append(res[1][0])
-                        grafico_valores_base.append(res[0][0])
-
-                        #print(res)
-                    coef = r2_score(grafico_valores_reais,grafico_valores_previstos)  
-                    # print(dict_for_name.get(str(parametros[0])))
-                    # print(dict_for_name.get(str(parametros[1])))
-                    # print(coef)
-                    #import ipdb;ipdb.set_trace()
-                    dict_csv.update({parametros:coef})
-                    
-                    mac_lg.salvando_graficos(nome_pasta_grafico,grafico_valores_base,grafico_valores_reais,grafico_valores_previstos,parametros)
-                except:
-                    pass
-            #     # writer.writerow(dict_csv)  
-                  
-               
-            
-            
+                        dict_csv.update({parametros:coeficiente})
+                        
+                        #mac_lg.salvando_graficos(nome_pasta_grafico,grafico_valores_base,grafico_valores_reais,grafico_valores_previstos,parametros)
+                    except:
+                        pass
+                writer.writerow(dict_csv)  
+                     
+                
+                
 
 
 
