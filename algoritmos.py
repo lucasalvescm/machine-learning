@@ -17,6 +17,10 @@ from calculos import AjusteCurva
 from matplotlib.pyplot import step, xlim, ylim, show
 from sklearn.metrics import r2_score
 import os, time, shutil, sys
+from collections import OrderedDict
+
+
+
 class MachineLearning:
     def get_data(self,file_name):
             '''
@@ -389,6 +393,7 @@ class MachineLearning:
         #import ipdb;ipdb.set_trace()
         parametros_1 = []
         parametros_2 = []
+        
         for dt in data[:num_train]:
             try:
 
@@ -415,17 +420,15 @@ class MachineLearning:
                                     param = 0
                                 #import ipdb;ipdb.set_trace()
                                 
-                                if key == variaveis[0]:
-                                    parametros_1.append(param)
-                                if key == variaveis[1]:
-                                    
-                                    parametros_2.append(param)
+                                if 'temp' in key and param > 48:
+                                    pass
+                                else:
+                                    if key == variaveis[0]:
+                                        parametros_1.append(param)
+                                    if key == variaveis[1]:
+                                        parametros_2.append(param)
 
-                                if key == 'minhumidity' and param >100:
-                                    print(param)
-                        # print(variaveis)
-                        # print(parametros_1)
-                        # print(parametros_2)
+
                         cont+=1
                     except Exception as e:
                         print(e)
@@ -473,12 +476,13 @@ class MachineLearning:
         erros = 0
         cont = 0
         cont_itens = num_test
+        parametros_base = []
+        parametros_reais = []
         for dt in data[num_test:]:
 
             try:
                 #import ipdb;ipdb.set_trace()
-                parametros_base = []
-                parametros_reais = []
+                
                 json_data = dt.replace("'",'"')
                 json_content = json.loads(json_data)
 
@@ -502,30 +506,29 @@ class MachineLearning:
                                     param = float(0)
                                 if param == '':
                                     param = float(0)
-                                if key_ == variaveis[0]:
-                                    parametros_base.append(param)
-                                if key_ == variaveis[1]:
-                                    parametros_reais.append(param)
+
+                                if 'temp' in key_ and param > 48:
+                                    pass
+                                else:
+                                    if key_ == variaveis[0]:
+                                        parametros_base.append(param)
+                                    if key_ == variaveis[1]:
+                                        parametros_reais.append(param)
                                     
                     except Exception as e:
                         print(e)
-                       
-                if parametros_base:
-                    #import ipdb;ipdb.set_trace()
-                    predicted = model.predict(np.array([parametros_base]))
-                    #predicted = b0 + (b1*float(parametros_base[0]))
-                    # print(parametros_base)
-                    # print(parametros_reais)
-                    # print(predicted)
-                    
-                    result.append([parametros_base,parametros_reais,predicted]) # .append(nº da linha .csv, boolean real, boolean previsto)
-                #import ipdb;ipdb.set_trace()
-                num+=1
-                cont+=1
-                cont_itens+=1
             except Exception as e:
                 print(str(e))
-                pass
+                pass           
+        if parametros_base:
+            #import ipdb;ipdb.set_trace()
+            predicted = model.predict(np.transpose(np.matrix(parametros_base)))
+            teste = []
+            for p in predicted:
+                teste.append(p[0])
+            result.append([parametros_base,parametros_reais,teste]) # .append(nº da linha .csv, boolean real, boolean previsto)
+
+            
 
         return result,nome_algoritmo
 
@@ -548,13 +551,15 @@ class MachineLearning:
         
   
 mac_lg = MachineLearning()
+#list_param = ['maxtempm', 'minpressurem']
+
 list_param = ['maxtempm','mintempm','minhumidity','maxhumidity','precipm','maxpressurem','minpressurem','maxwspdm']
 list_combinado = list(product(list_param,repeat=2))
 for comb in list_combinado:
     if comb[0]==comb[1]:
         list_combinado.remove(comb)
 list_combinado.insert(0,'cidade')
-with open('coef_variacao_3.csv', 'w') as csvfile:
+with open('variancia.csv', 'w') as csvfile:
     fieldnames = list_combinado
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader()    
@@ -564,7 +569,7 @@ with open('coef_variacao_3.csv', 'w') as csvfile:
         for name_arquivo in arquivo:
             nome_pasta_grafico = name_arquivo.split('.')
             nome_pasta_grafico = nome_pasta_grafico[0]
-            if os.listdir(base_url_graficos+str(nome_pasta_grafico)) == []:
+            if os.listdir(base_url_graficos+str(nome_pasta_grafico)) != []:
                 print(name_arquivo)
                 dados,flood = mac_lg.get_data('data_bases/America/'+str(name_arquivo))         
                 # resultado, nome_algoritmo,acertos,erros = mac_lg.treinamento_csv(lista_parametros,flood)
@@ -599,10 +604,10 @@ with open('coef_variacao_3.csv', 'w') as csvfile:
                             #import ipdb;ipdb.set_trace()
                             # if res[1][0] > 7:
                             #     import ipdb;ipdb.set_trace() 
-                            grafico_valores_previstos.append(res[2][0][0])
-                            grafico_valores_reais.append(res[1][0])
-                            grafico_valores_base.append(res[0][0])
-                        #import ipdb;ipdb.set_trace()    
+                            grafico_valores_previstos = res[2]
+                            grafico_valores_reais = res[1]
+                            grafico_valores_base = res[0]
+
                             #print(res)
                         #coef = r2_score(grafico_valores_reais,grafico_valores_previstos)  
                         b0,b1,sum_y_square, sum_y = AjusteCurva.modelo_mmq(grafico_valores_base,grafico_valores_reais)
@@ -616,15 +621,35 @@ with open('coef_variacao_3.csv', 'w') as csvfile:
 
                         print(dict_for_name.get(str(parametros[0])))
                         print(dict_for_name.get(str(parametros[1])))
-                        print(coeficiente)
-                        #import ipdb;ipdb.set_trace()
-                        dict_csv.update({parametros:coeficiente})
+                        print(str(variancia)+' '+str(desvio)+'  '+str(coeficiente))
+                        if coeficiente >0.10:
+                            #import ipdb;ipdb.set_trace()
+                            coeficiente = str(coeficiente)+'*'
+                        dict_csv.update({parametros:variancia})
+                        #dict_csv = OrderedDict(sorted(dict_csv.items()))
                         
                         #mac_lg.salvando_graficos(nome_pasta_grafico,grafico_valores_base,grafico_valores_reais,grafico_valores_previstos,parametros)
                     except:
                         pass
+
                 writer.writerow(dict_csv)  
                      
+
+# ifile  = open('coef_variacao_sorted.csv', "r")
+# read = csv.reader(ifile)
+# for row in read :
+#     lista = []
+#     lista.append(row[0])
+#     if row[0] != 'cidade':
+#         for number in row:
+#             try:
+#                 #import ipdb;ipdb.set_trace()
+#                 if float(number) >= 0.40:
+#                     lista.append(number)
+#             except:
+#                 pass
+
+#         print(lista)
                 
                 
 
